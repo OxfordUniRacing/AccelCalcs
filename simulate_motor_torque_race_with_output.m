@@ -1,17 +1,18 @@
 function [time_vec, position_vec, velocity_vec, acceleration_vec, wheel_force_vec, motor_torque_vec, motor_speed_vec, motor_current_vec,electrical_power_vec] = simulate_motor_torque_race_with_output(...
-    motor_voltage, motor_resistance, motor_constant_kT, motor_constant_kV, motor_speed_limit, CdA, wheel_diameter, Fx_max, ...
-    total_mass, gearbox_ratio, power_limit, current_limit, distance, time_step)
+    motor_supply_voltage, motor_resistance, motor_constant_kT, motor_constant_kV, motor_speed_limit, CdA, wheel_diameter, Fx_max, ...
+    total_mass, gearbox_ratio, n_driven_wheels, motor_power_limit, motor_current_limit, distance, time_step)
     % Simulates a vehicle drag race with motor dynamics and gearbox effects,
     % storing results for plotting, with a motor current limit.
     %
     % Inputs:
-    %   motor_voltage   - Voltage supplied to each motor (V)
+    %   motor_supply_voltage   - Voltage supplied to each motor (V)
     %   motor_resistance - Motor resistance (Ohms)
     %   motor_constant  - Torque/Back-EMF constant (Nm/A or V/rad/s)
     %   CdA             - coefficient of drag * area (m^2) 
     %   wheel_diameter  - Diameter of the wheels (meters)
     %   total_mass      - Vehicle and driver mass (kg)
     %   gearbox_ratio   - Gearbox reduction ratio
+    %   n_driven_wheels - number of driven wheels (2 or 4)
     %   power_limit     - Maximum motor power (W)
     %   current_lim
     % it   - Peak motor current (A)
@@ -35,7 +36,7 @@ function [time_vec, position_vec, velocity_vec, acceleration_vec, wheel_force_ve
 
     % Wheel radius and effective gearbox reduction
     wheel_radius = wheel_diameter / 2;
-    omega_base = motor_voltage/motor_constant_kV * 0.95;
+    omega_base = motor_supply_voltage/motor_constant_kV * 0.95;
 
 
     % Initialize result storage
@@ -70,20 +71,23 @@ function [time_vec, position_vec, velocity_vec, acceleration_vec, wheel_force_ve
         back_emf = motor_constant_kV_fw * motor_speed;
 
         % Voltage available for current
-        voltage_available = motor_voltage - back_emf;
+        voltage_available = motor_supply_voltage - back_emf;
 
         % Motor current (I = V / R)
         motor_current = voltage_available / motor_resistance;
-
+           
         % Limit current to peak rating
-        motor_current = min(motor_current, current_limit);
+        motor_current = min(motor_current, motor_current_limit);
+
+        % Motor voltage
+        motor_voltage = back_emf + motor_current * motor_resistance;
 
         % Electrical power
         electrical_power = motor_voltage * motor_current;
 
         % Limit motor power if necessary
-        if electrical_power > power_limit
-            motor_current = power_limit / motor_voltage; % P = V*I
+        if electrical_power > motor_power_limit
+            motor_current = motor_power_limit / motor_supply_voltage; % P = V*I
             electrical_power = motor_voltage * motor_current;
         end
 
@@ -103,7 +107,8 @@ function [time_vec, position_vec, velocity_vec, acceleration_vec, wheel_force_ve
         Fd = 0.5 * CdA * velocity^2;
 
         % Acceleration (a = F / m) 
-        acceleration = (wheel_force * 2 - Fd) / total_mass;
+        F_drive = n_driven_wheels * wheel_force;
+        acceleration = (F_drive - Fd) / total_mass;
 
         % Update velocity and position
         velocity = velocity + acceleration * time_step;
