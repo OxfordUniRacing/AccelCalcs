@@ -10,7 +10,7 @@ motor_constant_kT = 0.2225; % Nm/A
 motor_constant_kV = 1 / (48.1 * RPM2RADS); % convert to V/rad/s
 motor_speed_limit = 8000 * RPM2RADS;
 motor_power_limit = 40e3; % DC supply power (40 kW) (half of FS 80kW rule)
-motor_current_limit = 180; % Peak motor phase current (Arms)
+motor_current_limit = 200; % Peak motor phase current (Arms)
 Fx_max = 1100; % from plots of the magic formula for the OUR tyres
 
 % Vehicle Parameters

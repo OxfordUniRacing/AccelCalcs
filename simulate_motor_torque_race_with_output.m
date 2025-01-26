@@ -27,8 +27,6 @@ function [time_vec, position_vec, velocity_vec, acceleration_vec, wheel_force_ve
     %   motor_torque_vec - Motor torque vector (Nm)
     %   motor_current_vec - Motor current vector (A)
 
-    addpath("MFeval\MFeval")
-
     % Initial conditions
     velocity = 0; % m/s
     position = 0; % m
@@ -121,7 +119,7 @@ function [time_vec, position_vec, velocity_vec, acceleration_vec, wheel_force_ve
         position = position + velocity * time_step;
 
         % Store results
-        time_vec(end+1) = time; %#ok<*AGROW>
+        time_vec(end+1) = time; 
         position_vec(end+1) = position;
         velocity_vec(end+1) = velocity;
         acceleration_vec(end+1) = acceleration;
